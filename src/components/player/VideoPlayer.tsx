@@ -204,7 +204,6 @@ export function VideoPlayer({
       muted={settings.muted}
       playbackRate={settings.playbackSpeed}
       poster={poster}
-      onVolumeChange={(detail) => setVolume(detail.volume)}
       onVolumeChange={(detail) => {
       setVolume(detail.volume);
       setMuted(detail.muted);
