@@ -205,7 +205,10 @@ export function VideoPlayer({
       playbackRate={settings.playbackSpeed}
       poster={poster}
       onVolumeChange={(detail) => setVolume(detail.volume)}
-      onMutedChange={(detail) => setMuted(detail.muted)}
+      onVolumeChange={(detail) => {
+      setVolume(detail.volume);
+      setMuted(detail.muted);
+      }}
       onError={handlePlayerError}
       onTimeUpdate={handleTimeUpdate}
       onCanPlay={handleCanPlay}
