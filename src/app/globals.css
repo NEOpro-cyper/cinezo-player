@@ -131,3 +131,19 @@ media-captions {
   @apply absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider;
   background: rgba(139, 92, 246, 0.9);
 }
+media-player {
+  --media-brand: var(--player-accent);
+  --media-focus-ring-color: var(--player-accent);
+  --media-controls-color: #fff;
+  --media-font-family: inherit;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+media-player,
+media-provider,
+media-provider video {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
