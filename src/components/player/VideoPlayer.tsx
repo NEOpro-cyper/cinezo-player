@@ -197,7 +197,7 @@ export function VideoPlayer({
     <MediaPlayer
       ref={playerRef}
       src={{ src: currentSource.sources[0].url, type: 'application/x-mpegurl' }}
-      aspectRatio={16 / 9}
+      aspectRatio="16/9"
       crossorigin
       autoplay={settings.autoPlay}
       volume={settings.volume}
