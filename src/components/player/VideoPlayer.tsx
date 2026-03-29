@@ -211,7 +211,7 @@ export function VideoPlayer({
       onError={handlePlayerError}
       onTimeUpdate={handleTimeUpdate}
       onCanPlay={handleCanPlay}
-      className="flex-1 w-full bg-black"
+      className="w-full h-full bg-black"
     >
       <MediaProvider>
         {getSubtitles().map((track, i) => (
