@@ -60,7 +60,7 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
 }
 
 // Toast Container for managing multiple toasts
-interface ToastItem {
+export interface ToastItem {
   id: string;
   message: string;
   type: 'success' | 'error' | 'info';
