@@ -104,6 +104,7 @@ export function VideoPlayer({
     };
   }, [mediaId, mediaType, title, poster, currentSource, season, episode, addToHistory]);
 
+  // Fetch source with m3u8 URL validation
   const fetchSource = useCallback(async (serverName: string): Promise<ServerResponse | null> => {
     const path = mediaType === 'movie'
       ? `/api/movie/${mediaId}/${encodeURIComponent(serverName)}`
@@ -114,6 +115,16 @@ export function VideoPlayer({
       if (!res.ok) return null;
       const data = await res.json();
       if (!data?.sources?.[0]?.url) return null;
+
+      // Validate m3u8 URL is actually reachable
+      const m3u8Url = data.sources[0].url;
+      try {
+        const check = await fetch(m3u8Url, { method: 'HEAD' });
+        if (!check.ok) return null;
+      } catch {
+        return null; // URL unreachable, skip this server
+      }
+
       return data;
     } catch {
       return null;
@@ -141,20 +152,67 @@ export function VideoPlayer({
 
   // Auto-fallback on error
   const handlePlayerError = useCallback(async () => {
-    if (errorRetryCount >= 2) {
-      const currentIndex = servers.findIndex(s => s === currentSource?.server);
-      const nextServers = servers.slice(currentIndex + 1);
+    if (errorRetryCount >= 1) {
+      if (currentSource?.server) {
+        markServerFailed(currentSource.server);
+      }
 
-      for (const server of nextServers) {
+      const remainingServers = servers.filter(s => {
+        const { failedServers } = usePlayerStore.getState();
+        return !failedServers.has(s);
+      });
+
+      if (remainingServers.length === 0) {
+        setError('All servers failed. Please try again later.');
+        return;
+      }
+
+      for (const server of remainingServers) {
         const success = await switchServer(server);
         if (success) return;
       }
 
-      setError('All servers failed');
+      setError('All servers failed. Please try again later.');
     } else {
       setErrorRetryCount(prev => prev + 1);
     }
-  }, [errorRetryCount, servers, currentSource, switchServer, setError]);
+  }, [errorRetryCount, servers, currentSource, switchServer, setError, markServerFailed]);
+
+  // Stall detector - only switch if truly stuck (no progress for 10s)
+  useEffect(() => {
+    const video = document.querySelector('video') as HTMLVideoElement | null;
+    if (!video) return;
+
+    let stallTimer: NodeJS.Timeout;
+    let lastTime = 0;
+
+    const onWaiting = () => {
+      lastTime = video.currentTime;
+      stallTimer = setTimeout(() => {
+        // If time hasn't moved and video isn't paused, it's truly stuck
+        if (video.currentTime === lastTime && !video.paused) {
+          handlePlayerError();
+        }
+      }, 10000);
+    };
+
+    const onPlaying = () => clearTimeout(stallTimer);
+    const onProgress = () => clearTimeout(stallTimer); // data arriving, not stuck
+    const onError = () => handlePlayerError(); // hard error, switch immediately
+
+    video.addEventListener('waiting', onWaiting);
+    video.addEventListener('playing', onPlaying);
+    video.addEventListener('progress', onProgress);
+    video.addEventListener('error', onError);
+
+    return () => {
+      clearTimeout(stallTimer);
+      video.removeEventListener('waiting', onWaiting);
+      video.removeEventListener('playing', onPlaying);
+      video.removeEventListener('progress', onProgress);
+      video.removeEventListener('error', onError);
+    };
+  }, [currentSource, handlePlayerError]);
 
   // Get subtitles for current source
   const getSubtitles = useCallback(() => {
@@ -170,7 +228,6 @@ export function VideoPlayer({
   const handleTimeUpdate = useCallback(() => {
     const player = playerRef.current;
     if (!player) return;
-
     updateHistoryProgress(mediaId, player.currentTime ?? 0, player.duration ?? 0);
   }, [mediaId, updateHistoryProgress]);
 
@@ -205,8 +262,8 @@ export function VideoPlayer({
       playbackRate={settings.playbackSpeed}
       poster={poster}
       onVolumeChange={(detail) => {
-      setVolume(detail.volume);
-      setMuted(detail.muted);
+        setVolume(detail.volume);
+        setMuted(detail.muted);
       }}
       onError={handlePlayerError}
       onTimeUpdate={handleTimeUpdate}
