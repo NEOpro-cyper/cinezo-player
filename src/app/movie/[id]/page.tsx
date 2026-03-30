@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: MoviePageProps): Promise<Meta
   const meta = await fetchMovieMeta(params.id);
   
   return {
-    title: meta?.title ? `${meta.title} - Cinezo Player` : `Movie Player - ${params.id}`,
+    title: meta?.title ? `${meta.title} - Cinetaro Player` : `Movie Player - ${params.id}`,
     description: meta?.overview || 'Watch movies online',
     openGraph: {
       title: meta?.title || 'Movie Player',
