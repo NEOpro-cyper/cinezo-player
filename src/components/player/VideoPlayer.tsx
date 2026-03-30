@@ -104,8 +104,7 @@ export function VideoPlayer({
     };
   }, [mediaId, mediaType, title, poster, currentSource, season, episode, addToHistory]);
 
-  // Fetch source with m3u8 URL validation
-  const fetchSource = useCallback(async (serverName: string): Promise<ServerResponse | null> => {
+const fetchSource = useCallback(async (serverName: string): Promise<ServerResponse | null> => {
     const path = mediaType === 'movie'
       ? `/api/movie/${mediaId}/${encodeURIComponent(serverName)}`
       : `/api/tv/${mediaId}/${season}/${episode}/${encodeURIComponent(serverName)}`;
@@ -115,16 +114,6 @@ export function VideoPlayer({
       if (!res.ok) return null;
       const data = await res.json();
       if (!data?.sources?.[0]?.url) return null;
-
-      // Validate m3u8 URL is actually reachable
-      const m3u8Url = data.sources[0].url;
-      try {
-        const check = await fetch(m3u8Url, { method: 'HEAD' });
-        if (!check.ok) return null;
-      } catch {
-        return null; // URL unreachable, skip this server
-      }
-
       return data;
     } catch {
       return null;
@@ -193,7 +182,7 @@ export function VideoPlayer({
         if (video.currentTime === lastTime && !video.paused) {
           handlePlayerError();
         }
-      }, 10000);
+      }, 4000);
     };
 
     const onPlaying = () => clearTimeout(stallTimer);
