@@ -410,7 +410,7 @@ if (!currentSource) {
     beforeSettingsMenu: (
       <div className="flex items-center gap-1">
         <button
-          onClick={() => (window as any).__playerToggleHistory?.()}
+          onMouseDown={(e) => { e.stopPropagation(); (window as any).__playerToggleHistory?.(); }}
           className="vds-button"
           title="Watch History"
         >
@@ -421,18 +421,7 @@ if (!currentSource) {
         </button>
 
         <button
-          onClick={() => (window as any).__playerToggleShortcuts?.()}
-          className="vds-button"
-          title="Keyboard Shortcuts"
-        >
-          <svg className="vds-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="2" y="6" width="20" height="12" rx="2"/>
-            <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>
-          </svg>
-        </button>
-
-        <button
-          onClick={() => (window as any).__playerToggleServers?.()}
+          onMouseDown={(e) => { e.stopPropagation(); (window as any).__playerToggleServers?.(); }}
           className="vds-button"
           title="Servers"
         >
