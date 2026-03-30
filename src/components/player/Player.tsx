@@ -66,9 +66,10 @@ export function Player({
   } = usePlayerStore();
 
   // Read URL params and apply to settings on mount
-  useEffect(() => {
+ useEffect(() => {
     const autoPlay = searchParams.get('autoPlay');
     const autoSkip = searchParams.get('asi');
+    const color = searchParams.get('color');
 
     const updates: Partial<typeof settings> = {};
 
@@ -79,6 +80,13 @@ export function Player({
 
     if (Object.keys(updates).length > 0) {
       updateSettings(updates);
+    }
+
+    // ✅ Apply custom accent color from URL param
+    if (color) {
+      const hex = color.startsWith('#') ? color : `#${color}`;
+      document.documentElement.style.setProperty('--player-accent', hex);
+      document.documentElement.style.setProperty('--media-brand', hex);
     }
   }, [searchParams, updateSettings]);
 
