@@ -199,7 +199,7 @@ const {
         if (video.currentTime === lastTime && !video.paused) {
           handlePlayerError();
         }
-      }, 4000);
+      }, 10000);
     };
 
     const onPlaying = () => clearTimeout(stallTimer);
