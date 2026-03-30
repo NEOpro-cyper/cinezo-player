@@ -139,33 +139,29 @@ const fetchSource = useCallback(async (serverName: string): Promise<ServerRespon
     }
   }, [fetchSource, setCurrentSource, setCurrentServer, setServerStatus, markServerFailed, setLoading]);
 
-  // Auto-fallback on error
-  const handlePlayerError = useCallback(async () => {
-    if (errorRetryCount >= 1) {
-      if (currentSource?.server) {
-        markServerFailed(currentSource.server);
-      }
-
-      const remainingServers = servers.filter(s => {
-        const { failedServers } = usePlayerStore.getState();
-        return !failedServers.has(s);
-      });
-
-      if (remainingServers.length === 0) {
-        setError('All servers failed. Please try again later.');
-        return;
-      }
-
-      for (const server of remainingServers) {
-        const success = await switchServer(server);
-        if (success) return;
-      }
-
-      setError('All servers failed. Please try again later.');
-    } else {
-      setErrorRetryCount(prev => prev + 1);
+const handlePlayerError = useCallback(async () => {
+    if (currentSource?.server) {
+      markServerFailed(currentSource.server);
     }
-  }, [errorRetryCount, servers, currentSource, switchServer, setError, markServerFailed]);
+
+    const remainingServers = servers.filter(s => {
+      const { failedServers } = usePlayerStore.getState();
+      return !failedServers.has(s);
+    });
+
+    if (remainingServers.length === 0) {
+      setError('All servers failed. Please try again later.');
+      return;
+    }
+
+    for (const server of remainingServers) {
+      const success = await switchServer(server);
+      if (success) return;
+    }
+
+    setError('All servers failed. Please try again later.');
+  }, [servers, currentSource, switchServer, setError, markServerFailed]);
+  
 
   // Stall detector - only switch if truly stuck (no progress for 10s)
   useEffect(() => {
