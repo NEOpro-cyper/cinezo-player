@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'CineZo Player',
+  title: 'Cinetaro Player',
   description: 'Elegant video player with multi-server support',
 };
 
