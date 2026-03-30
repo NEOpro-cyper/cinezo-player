@@ -11,7 +11,7 @@ import { ShortcutHelp } from './ShortcutHelp';
 import { WatchHistory } from './WatchHistory';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { usePlayerStore, ServerResponse, WatchHistoryItem } from '@/store/player-store';
-import { Settings, Maximize, ChevronLeft, ChevronRight, Clock, Keyboard, Server } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PlayerProps {
   initialSource: ServerResponse | null;
@@ -246,64 +246,6 @@ export function Player({
 
         {/* ✅ Loading Overlay with poster background */}
         <LoadingOverlay visible={isLoading} message={loadingMessage} poster={poster} />
-
-        {/* Top Bar */}
-        <div className="absolute top-0 left-0 right-0 z-30 p-4 bg-gradient-to-b from-black/80 to-transparent opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {title && (
-                <h1 className="text-lg font-semibold text-white">{title}</h1>
-              )}
-              {mediaType === 'tv' && season && episode && (
-                <span className="text-sm text-gray-400">
-                  S{season} E{episode}
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowHistory(true)}
-                className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                title="Watch History"
-              >
-                <Clock className="w-5 h-5" />
-              </button>
-
-              <button
-                onClick={() => setShowShortcuts(true)}
-                className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                title="Keyboard Shortcuts (?)"
-              >
-                <Keyboard className="w-5 h-5" />
-              </button>
-
-              <button
-                onClick={toggleServerPanel}
-                className={`p-2 rounded-lg transition-colors ${showServerPanel ? 'bg-player-accent text-white' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                title="Servers"
-              >
-                <Server className="w-5 h-5" />
-              </button>
-
-              <button
-                onClick={toggleSettings}
-                className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-player-accent text-white' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                title="Settings (S)"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-
-              <button
-                onClick={toggleFullscreen}
-                className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                title="Fullscreen (F)"
-              >
-                <Maximize className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Episode Navigation */}
         {mediaType === 'tv' && (
