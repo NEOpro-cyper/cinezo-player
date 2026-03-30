@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { Metadata } from 'next';
 import { fetchServers, fetchMovieSource } from '@/lib/api';
 import { Player } from '@/components/player';
