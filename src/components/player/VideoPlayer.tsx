@@ -324,12 +324,6 @@ if (!currentSource) {
           </div>
           <p className="text-white text-xl font-semibold mb-2">No Servers Available</p>
           <p className="text-gray-400 text-sm mb-6">All streaming servers are currently unavailable.<br />Please try again later.</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-5 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm transition-colors"
-          >
-            Try Again
-          </button>
         </div>
       ) : (
         /* ── Finding server state ── */
