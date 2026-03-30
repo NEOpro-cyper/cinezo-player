@@ -211,6 +211,22 @@ export function Player({
 
   const subtitles = currentSource?.sources?.[0]?.subtitles || [];
 
+   useEffect(() => {
+    (window as any).__playerToggleHistory = () => setShowHistory(prev => !prev);
+    (window as any).__playerToggleShortcuts = () => setShowShortcuts(prev => !prev);
+    (window as any).__playerToggleServers = () => toggleServerPanel();
+
+    return () => {
+      delete (window as any).__playerToggleHistory;
+      delete (window as any).__playerToggleShortcuts;
+      delete (window as any).__playerToggleServers;
+    };
+  }, []);
+
+  const subtitles = currentSource?.sources?.[0]?.subtitles || [];
+
+
+  
   return (
     <div
       ref={containerRef}
