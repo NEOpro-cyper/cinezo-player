@@ -57,13 +57,18 @@ const {
 } = usePlayerStore();
 
   // Initialize with initial source
+// Initialize with initial source
   useEffect(() => {
+    setError(null); // ✅ clear any stale error from previous session
     if (initialSource) {
       setCurrentSource(initialSource);
       setCurrentServer(initialSource.server);
+    } else {
+      // initialSource is null = all servers failed at load time
+      setError('All servers failed. Please try again later.');
     }
     setLoading(false);
-  }, [initialSource, setCurrentSource, setCurrentServer, setLoading]);
+  }, [initialSource, setCurrentSource, setCurrentServer, setLoading, setError]);
 
   // ✅ Save current time BEFORE source changes
   useEffect(() => {
@@ -302,13 +307,13 @@ if (!currentSource) {
           <img
             src={poster}
             alt="poster"
-            className="absolute inset-0 w-full h-full object-cover opacity-30 blur-md scale-105"
+            className="absolute inset-0 w-full h-full object-cover opacity-60 blur-sm scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/50" />
         </>
       )}
 
-      {error ? (
+      {error || (!initialSource && servers.length > 0) ? (
         /* ── No servers available state ── */
         <div className="relative z-10 text-center px-6">
           <div className="w-16 h-16 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center mx-auto mb-4">
