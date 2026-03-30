@@ -115,42 +115,25 @@ export function Player({
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const fetchSource = useCallback(async (serverName: string): Promise<ServerResponse | null> => {
-    const path = mediaType === 'movie'
-      ? `/api/movie/${mediaId}/${encodeURIComponent(serverName)}`
-      : `/api/tv/${mediaId}/${season}/${episode}/${encodeURIComponent(serverName)}`;
-
-    try {
-      const res = await fetch(path);
-      if (!res.ok) return null;
-      const data = await res.json();
-      if (!data?.sources?.[0]?.url) return null;
-      return data;
-    } catch {
-      return null;
-    }
-  }, [mediaId, mediaType, season, episode]);
-
+  // ✅ FIX: Call the VideoPlayer's switchServer function
   const handleServerSelect = useCallback(async (serverName: string): Promise<boolean> => {
-    setServerStatus(serverName, 'loading');
-    setLoading(true, `Connecting to ${serverName}...`);
     addToast(`Switching to ${serverName}...`, 'info');
 
-    const source = await fetchSource(serverName);
-
-    if (source) {
-      setCurrentSource(source);
-      setCurrentServer(serverName);
-      setLoading(false);
-      addToast(`Connected to ${serverName}`, 'success');
-      return true;
-    } else {
-      markServerFailed(serverName);
-      setLoading(false);
-      addToast(`${serverName} failed`, 'error');
-      return false;
+    // Call the exposed switchServer function from VideoPlayer
+    const switchFn = (window as any).__playerSwitchServer;
+    if (switchFn) {
+      const success = await switchFn(serverName);
+      if (success) {
+        addToast(`Connected to ${serverName}`, 'success');
+        return true;
+      } else {
+        addToast(`${serverName} failed`, 'error');
+        return false;
+      }
     }
-  }, [fetchSource, setCurrentSource, setCurrentServer, setServerStatus, markServerFailed, setLoading, addToast]);
+
+    return false;
+  }, [addToast]);
 
   const toggleFullscreen = useCallback(() => {
     if (!containerRef.current) return;
@@ -246,7 +229,7 @@ export function Player({
           poster={poster}
         />
 
-        {/* Loading Overlay — now receives poster for blurred background */}
+        {/* ✅ Loading Overlay with poster background */}
         <LoadingOverlay visible={isLoading} message={loadingMessage} poster={poster} />
 
         {/* Top Bar */}
