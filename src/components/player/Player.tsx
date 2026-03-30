@@ -209,7 +209,6 @@ export function Player({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showSettings]);
 
-  const subtitles = currentSource?.sources?.[0]?.subtitles || [];
 
    useEffect(() => {
     (window as any).__playerToggleHistory = () => setShowHistory(prev => !prev);
