@@ -319,14 +319,6 @@ export function Player({
           }}
         />
 
-{/* Settings Panel */}
-        <SettingsPanel
-          subtitles={subtitles}
-          onSubtitleChange={(url) => {
-            // Handle subtitle change
-          }}
-        />
-
         {/* Server Panel */}
         <ServerPanel servers={servers} onServerSelect={handleServerSelect} />
       </div>
