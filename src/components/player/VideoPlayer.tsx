@@ -34,25 +34,27 @@ export function VideoPlayer({
   const playerRef = useRef<React.ElementRef<typeof MediaPlayer>>(null);
   
   // ✅ CRITICAL: Track timestamp for server switches
-  const savedTimeRef = useRef<number>(0);
-  const isServerSwitchRef = useRef<boolean>(false);
-  const hasRestoredTimeRef = useRef<boolean>(false);
+const savedTimeRef = useRef<number>(0);
+const isServerSwitchRef = useRef<boolean>(false);
+const hasRestoredTimeRef = useRef<boolean>(false);
+const hasStartedRef = useRef<boolean>(false);
 
-  const {
-    currentSource,
-    setCurrentSource,
-    setCurrentServer,
-    setServerStatus,
-    markServerFailed,
-    setLoading,
-    setError,
-    settings,
-    setVolume,
-    setMuted,
-    addToHistory,
-    updateHistoryProgress,
-    getHistoryItem,
-  } = usePlayerStore();
+const {
+  currentSource,
+  setCurrentSource,
+  setCurrentServer,
+  setServerStatus,
+  markServerFailed,
+  setLoading,
+  setError,
+  error,
+  settings,
+  setVolume,
+  setMuted,
+  addToHistory,
+  updateHistoryProgress,
+  getHistoryItem,
+} = usePlayerStore();
 
   // Initialize with initial source
   useEffect(() => {
@@ -213,15 +215,16 @@ export function VideoPlayer({
     };
   }, [currentSource, handlePlayerError]);
 
-  const getSubtitles = useCallback(() => {
-    if (!currentSource?.sources?.[0]?.subtitles) return [];
-    return currentSource.sources[0].subtitles.map((sub, i) => ({
-      src: sub.url,
-      label: sub.lang,
-      kind: 'subtitles',
-      default: i === 0,
-    }));
-  }, [currentSource]);
+const getSubtitles = useCallback(() => {
+  if (!currentSource?.sources?.[0]?.subtitles) return [];
+  return currentSource.sources[0].subtitles.map((sub, i) => ({
+    src: sub.url,
+    label: sub.lang || `Subtitle ${i + 1}`,
+    kind: 'subtitles',
+    srcLang: (sub.lang || '').toLowerCase().slice(0, 2),
+    default: i === 0,
+  }));
+}, [currentSource]);
 
   const handleTimeUpdate = useCallback(() => {
     const player = playerRef.current;
@@ -290,28 +293,50 @@ export function VideoPlayer({
     };
   }, [switchServer]);
 
-  if (!currentSource) {
-    return (
-      <div className="relative flex-1 flex items-center justify-center w-full h-full bg-black">
-        {/* Poster background while finding server */}
-        {poster && (
-          <>
-            <img
-              src={poster}
-              alt="poster"
-              className="absolute inset-0 w-full h-full object-cover opacity-30 blur-md scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/80" />
-          </>
-        )}
+
+if (!currentSource) {
+  return (
+    <div className="relative flex-1 flex items-center justify-center w-full h-full bg-black">
+      {poster && (
+        <>
+          <img
+            src={poster}
+            alt="poster"
+            className="absolute inset-0 w-full h-full object-cover opacity-30 blur-md scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/80" />
+        </>
+      )}
+
+      {error ? (
+        /* ── No servers available state ── */
+        <div className="relative z-10 text-center px-6">
+          <div className="w-16 h-16 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M5.636 5.636a9 9 0 1 0 12.728 12.728M5.636 5.636A9 9 0 0 1 18.364 18.364M5.636 5.636 18.364 18.364" />
+            </svg>
+          </div>
+          <p className="text-white text-xl font-semibold mb-2">No Servers Available</p>
+          <p className="text-gray-400 text-sm mb-6">All streaming servers are currently unavailable.<br />Please try again later.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-5 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : (
+        /* ── Finding server state ── */
         <div className="relative z-10 text-center">
           <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
           <p className="text-white text-lg font-medium mb-2">Finding a working server...</p>
           <p className="text-gray-400 text-sm">Please wait</p>
         </div>
-      </div>
-    );
-  }
+      )}
+    </div>
+  );
+}
 
   return (
     <div className="relative w-full h-full bg-black">
@@ -335,36 +360,44 @@ export function VideoPlayer({
         </div>
       )}
 
-      <MediaPlayer
-        ref={playerRef}
-        src={{ src: currentSource.sources[0].url, type: 'application/x-mpegurl' }}
-        aspectRatio="16/9"
-        crossorigin
-        autoplay={settings.autoPlay}
-        volume={settings.volume}
-        muted={settings.muted}
-        playbackRate={settings.playbackSpeed}
-        poster={poster}
-        onVolumeChange={(detail) => {
-          setVolume(detail.volume);
-          setMuted(detail.muted);
-        }}
-        onError={handlePlayerError}
-        onTimeUpdate={handleTimeUpdate}
-        onCanPlay={handleCanPlay}
-        onEnded={handleEnded}
-        className="relative z-10 w-full h-full"
-      >
+<MediaPlayer
+  ref={playerRef}
+  src={{ src: currentSource.sources[0].url, type: 'application/x-mpegurl' }}
+  aspectRatio="16/9"
+  crossorigin
+  autoplay={settings.autoPlay}
+  volume={settings.volume}
+  muted={hasStartedRef.current ? settings.muted : true}
+  playbackRate={settings.playbackSpeed}
+  poster={poster}
+  onPlay={() => {
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      const video = document.querySelector('video') as HTMLVideoElement;
+      if (video) video.muted = settings.muted;
+    }
+  }}
+  onVolumeChange={(detail) => {
+    setVolume(detail.volume);
+    setMuted(detail.muted);
+  }}
+  onError={handlePlayerError}
+  onTimeUpdate={handleTimeUpdate}
+  onCanPlay={handleCanPlay}
+  onEnded={handleEnded}
+  className="relative z-10 w-full h-full"
+>
         <MediaProvider>
           {getSubtitles().map((track, i) => (
-            <track
-              key={i}
-              src={track.src}
-              label={track.label}
-              kind={track.kind as 'subtitles'}
-              default={track.default}
-            />
-          ))}
+  <track
+    key={i}
+    src={track.src}
+    label={track.label}
+    kind={track.kind as 'subtitles'}
+    srcLang={track.srcLang}
+    default={track.default}
+  />
+))}
         </MediaProvider>
         <DefaultVideoLayout icons={defaultLayoutIcons} />
       </MediaPlayer>
