@@ -52,7 +52,7 @@ export default function HomePage() {
               <Play className="w-5 h-5 text-white" fill="white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">CineZo Player</h1>
+              <h1 className="text-xl font-bold text-white">Cinetaro Player</h1>
               <p className="text-xs text-gray-500">Elegant streaming experience</p>
             </div>
           </div>
@@ -271,7 +271,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="p-6 border-t border-player-border text-center text-gray-500 text-sm">
-        <p>CineZo Player • Built with Next.js & Vidstack</p>
+        <p>Cinetaro Player • Built with Next.js & Vidstack</p>
       </footer>
     </main>
   );
