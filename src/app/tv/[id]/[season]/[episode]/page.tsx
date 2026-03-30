@@ -3,10 +3,6 @@ export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import { fetchServers, fetchTVSource } from '@/lib/api';
 import { Player } from '@/components/player';
-// ... rest of file
-import { Metadata } from 'next';
-import { fetchServers, fetchTVSource } from '@/lib/api';
-import { Player } from '@/components/player';
 
 interface TVPageProps {
   params: { id: string; season: string; episode: string };
