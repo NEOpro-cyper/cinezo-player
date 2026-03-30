@@ -311,17 +311,25 @@ export function Player({
           </div>
         )}
 
-        {/* Settings Panel */}
+       {/* Settings Panel */}
         <SettingsPanel
           subtitles={subtitles}
           onSubtitleChange={(url) => {
             // Handle subtitle change
           }}
         />
-      </div>
 
-      {/* Server Panel */}
-      <ServerPanel servers={servers} onServerSelect={handleServerSelect} />
+{/* Settings Panel */}
+        <SettingsPanel
+          subtitles={subtitles}
+          onSubtitleChange={(url) => {
+            // Handle subtitle change
+          }}
+        />
+
+        {/* Server Panel */}
+        <ServerPanel servers={servers} onServerSelect={handleServerSelect} />
+      </div>
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
