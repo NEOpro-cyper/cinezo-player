@@ -53,11 +53,13 @@ export async function fetchMovieSource(id: string, serverName: string): Promise<
   try {
     const res = await fetch(
       `${API_BASE}/api/movie/${id}/${encodeURIComponent(serverName)}`,
-      { next: { revalidate: 3600 } }
+      { 
+        next: { revalidate: 3600 },
+        signal: AbortSignal.timeout(10000), // 10s timeout
+      }
     );
 
     if (!res.ok) return null;
-
     const data = await res.json();
     
     if (!data?.sources?.[0]?.url) return null;
@@ -66,7 +68,8 @@ export async function fetchMovieSource(id: string, serverName: string): Promise<
       sources: data.sources,
       server: serverName,
     };
-  } catch {
+  } catch (error) {
+    console.error(`Failed to fetch movie source from ${serverName}:`, error);
     return null;
   }
 }
@@ -80,11 +83,13 @@ export async function fetchTVSource(
   try {
     const res = await fetch(
       `${API_BASE}/api/tv/${id}/${season}/${episode}/${encodeURIComponent(serverName)}`,
-      { next: { revalidate: 3600 } }
+      { 
+        next: { revalidate: 3600 },
+        signal: AbortSignal.timeout(10000), // 10s timeout
+      }
     );
 
     if (!res.ok) return null;
-
     const data = await res.json();
     
     if (!data?.sources?.[0]?.url) return null;
@@ -93,7 +98,8 @@ export async function fetchTVSource(
       sources: data.sources,
       server: serverName,
     };
-  } catch {
+  } catch (error) {
+    console.error(`Failed to fetch TV source from ${serverName}:`, error);
     return null;
   }
 }
@@ -107,10 +113,11 @@ export async function getInitialSource(
     const source = type === 'movie'
       ? await fetchMovieSource(params.id, server.name)
       : await fetchTVSource(params.id, params.season!, params.episode!, server.name);
-
+    
     if (source) {
       return { source, serverName: server.name };
     }
   }
+  
   return null;
 }
