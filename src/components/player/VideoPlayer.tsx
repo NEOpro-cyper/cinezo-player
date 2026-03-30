@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { MediaPlayer, MediaProvider } from '@vidstack/react';
 import {
   defaultLayoutIcons,
@@ -32,8 +32,11 @@ export function VideoPlayer({
   poster,
 }: VideoPlayerProps) {
   const playerRef = useRef<React.ElementRef<typeof MediaPlayer>>(null);
-  // Track current time so we can restore it when switching servers
-  const currentTimeRef = useRef<number>(0);
+  
+  // ✅ CRITICAL: Track timestamp for server switches
+  const savedTimeRef = useRef<number>(0);
+  const isServerSwitchRef = useRef<boolean>(false);
+  const hasRestoredTimeRef = useRef<boolean>(false);
 
   const {
     currentSource,
@@ -59,6 +62,29 @@ export function VideoPlayer({
     }
     setLoading(false);
   }, [initialSource, setCurrentSource, setCurrentServer, setLoading]);
+
+  // ✅ Save current time BEFORE source changes
+  useEffect(() => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    const handleBeforeUnload = () => {
+      savedTimeRef.current = player.currentTime ?? 0;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // ✅ Track time continuously for server switches
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (playerRef.current && !isServerSwitchRef.current) {
+        savedTimeRef.current = playerRef.current.currentTime ?? 0;
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Save progress periodically
   useEffect(() => {
@@ -105,6 +131,12 @@ export function VideoPlayer({
   }, [mediaId, mediaType, season, episode]);
 
   const switchServer = useCallback(async (serverName: string) => {
+    // ✅ Save current time BEFORE switching
+    if (playerRef.current) {
+      savedTimeRef.current = playerRef.current.currentTime ?? 0;
+      isServerSwitchRef.current = true;
+    }
+
     setServerStatus(serverName, 'loading');
     setLoading(true, `Connecting to ${serverName}...`);
 
@@ -113,11 +145,12 @@ export function VideoPlayer({
     if (source) {
       setCurrentSource(source);
       setCurrentServer(serverName);
-      setLoading(false);
+      // Don't set loading false here - let canPlay do it
       return true;
     } else {
       markServerFailed(serverName);
       setLoading(false);
+      isServerSwitchRef.current = false;
       return false;
     }
   }, [fetchSource, setCurrentSource, setCurrentServer, setServerStatus, markServerFailed, setLoading]);
@@ -196,9 +229,6 @@ export function VideoPlayer({
     const time = player.currentTime ?? 0;
     const duration = player.duration ?? 0;
 
-    // Track current time for server switch restore
-    currentTimeRef.current = time;
-
     // Update history progress
     updateHistoryProgress(mediaId, time, duration);
 
@@ -210,30 +240,55 @@ export function VideoPlayer({
     }), '*');
   }, [mediaId, updateHistoryProgress]);
 
+  // ✅ CRITICAL FIX: Proper time restoration logic
   const handleCanPlay = useCallback(() => {
-    setLoading(false);
+    const player = playerRef.current;
+    if (!player) return;
 
-    if (!playerRef.current) return;
-
-    // Restore time from server switch first (takes priority)
-    if (currentTimeRef.current > 0) {
-      playerRef.current.currentTime = currentTimeRef.current;
+    // Priority 1: Restore from server switch (most important)
+    if (isServerSwitchRef.current && savedTimeRef.current > 0) {
+      console.log('🔄 Restoring time after server switch:', savedTimeRef.current);
+      player.currentTime = savedTimeRef.current;
+      isServerSwitchRef.current = false;
+      hasRestoredTimeRef.current = true;
+      setLoading(false);
       return;
     }
 
-    // Otherwise restore from watch history
-    const historyItem = getHistoryItem(mediaId);
-    if (historyItem && historyItem.currentTime > 0) {
-      playerRef.current.currentTime = historyItem.currentTime;
+    // Priority 2: Restore from watch history (only on first load)
+    if (!hasRestoredTimeRef.current) {
+      const historyItem = getHistoryItem(mediaId);
+      if (historyItem && historyItem.currentTime > 5) { // Skip if less than 5s
+        console.log('📚 Restoring from watch history:', historyItem.currentTime);
+        player.currentTime = historyItem.currentTime;
+        hasRestoredTimeRef.current = true;
+      }
     }
+
+    setLoading(false);
   }, [mediaId, getHistoryItem, setLoading]);
 
   const handleEnded = useCallback(() => {
-    // Broadcast complete to parent (for auto-next integration)
+    // ✅ Broadcast complete to parent for auto-next
     window.parent.postMessage(JSON.stringify({
       event: 'complete',
     }), '*');
-  }, []);
+
+    // ✅ Auto-next episode if enabled and it's a TV show
+    if (settings.autoSkip && mediaType === 'tv' && season && episode) {
+      const nextEp = parseInt(episode) + 1;
+      // You'll need to pass totalEpisodes as a prop or fetch it
+      window.location.href = `/tv/${mediaId}/${season}/${nextEp}`;
+    }
+  }, [settings.autoSkip, mediaType, mediaId, season, episode]);
+
+  // ✅ Expose switchServer to parent component via ref
+  useEffect(() => {
+    (window as any).__playerSwitchServer = switchServer;
+    return () => {
+      delete (window as any).__playerSwitchServer;
+    };
+  }, [switchServer]);
 
   if (!currentSource) {
     return (
@@ -244,31 +299,40 @@ export function VideoPlayer({
             <img
               src={poster}
               alt="poster"
-              className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm scale-105"
+              className="absolute inset-0 w-full h-full object-cover opacity-30 blur-md scale-105"
             />
-            <div className="absolute inset-0 bg-black/60" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/80" />
           </>
         )}
         <div className="relative z-10 text-center">
           <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-300 text-sm">Finding a working server...</p>
+          <p className="text-white text-lg font-medium mb-2">Finding a working server...</p>
+          <p className="text-gray-400 text-sm">Please wait</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-full">
-      {/* Poster shown behind player during buffering/loading */}
+    <div className="relative w-full h-full bg-black">
+      {/* ✅ Poster shown during ALL loading states */}
       {poster && (
-        <>
+        <div className={`absolute inset-0 transition-opacity duration-500 pointer-events-none ${
+          isServerSwitchRef.current ? 'opacity-100' : 'opacity-0'
+        }`}>
           <img
             src={poster}
             alt="poster"
-            className="absolute inset-0 w-full h-full object-cover opacity-20 blur-sm scale-105 pointer-events-none"
+            className="absolute inset-0 w-full h-full object-cover blur-md scale-105"
           />
-          <div className="absolute inset-0 bg-black/50 pointer-events-none" />
-        </>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/80" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-white text-sm">Switching server...</p>
+            </div>
+          </div>
+        </div>
       )}
 
       <MediaPlayer
@@ -289,7 +353,7 @@ export function VideoPlayer({
         onTimeUpdate={handleTimeUpdate}
         onCanPlay={handleCanPlay}
         onEnded={handleEnded}
-        className="relative z-10 w-full h-full bg-transparent"
+        className="relative z-10 w-full h-full"
       >
         <MediaProvider>
           {getSubtitles().map((track, i) => (
