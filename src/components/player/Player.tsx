@@ -10,7 +10,7 @@ import { ShortcutHelp } from './ShortcutHelp';
 import { WatchHistory } from './WatchHistory';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { usePlayerStore, ServerResponse, WatchHistoryItem } from '@/store/player-store';
-import { Settings, Info, Maximize, ChevronLeft, ChevronRight, Clock, Keyboard } from 'lucide-react';
+import { Settings, Info, Maximize, ChevronLeft, ChevronRight, Clock, Keyboard, Server } from 'lucide-react';
 
 interface PlayerProps {
   initialSource: ServerResponse | null;
@@ -247,6 +247,22 @@ export function Player({
                 <Keyboard className="w-5 h-5" />
               </button>
 
+             {/* Server Panel */}
+              <button
+                onClick={toggleServerPanel}
+                className={`
+                  p-2 rounded-lg transition-colors
+                  ${showServerPanel ? 'bg-player-accent text-white' : 'text-gray-400 hover:text-white hover:bg-white/10'}
+                  `}
+                    title="Servers"
+                      >
+                  <Server className="w-5 h-5" />
+                      </button>
+
+
+            
+            
+              
               {/* Settings */}
               <button
                 onClick={toggleSettings}
