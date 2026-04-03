@@ -11,7 +11,6 @@ import { ShortcutHelp } from './ShortcutHelp';
 import { WatchHistory } from './WatchHistory';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { usePlayerStore, ServerResponse, WatchHistoryItem } from '@/store/player-store';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PlayerProps {
   initialSource: ServerResponse | null;
@@ -66,7 +65,7 @@ export function Player({
   } = usePlayerStore();
 
   // Read URL params and apply to settings on mount
- useEffect(() => {
+  useEffect(() => {
     const autoPlay = searchParams.get('autoPlay');
     const autoSkip = searchParams.get('asi');
     const color = searchParams.get('color');
@@ -82,7 +81,7 @@ export function Player({
       updateSettings(updates);
     }
 
-    // ✅ Apply custom accent color from URL param
+    // Apply custom accent color from URL param
     if (color) {
       const hex = color.startsWith('#') ? color : `#${color}`;
       document.documentElement.style.setProperty('--player-accent', hex);
@@ -123,7 +122,6 @@ export function Player({
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // ✅ FIX: Call the VideoPlayer's switchServer function
   const handleServerSelect = useCallback(async (serverName: string): Promise<boolean> => {
     addToast(`Switching to ${serverName}...`, 'info');
 
@@ -217,8 +215,7 @@ export function Player({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showSettings]);
 
-
-   useEffect(() => {
+  useEffect(() => {
     (window as any).__playerToggleHistory = () => setShowHistory(prev => !prev);
     (window as any).__playerToggleShortcuts = () => setShowShortcuts(prev => !prev);
     (window as any).__playerToggleServers = () => toggleServerPanel();
@@ -232,8 +229,6 @@ export function Player({
 
   const subtitles = currentSource?.sources?.[0]?.subtitles || [];
 
-
-  
   return (
     <div
       ref={containerRef}
@@ -252,7 +247,7 @@ export function Player({
           poster={poster}
         />
 
-        {/* ✅ Loading Overlay with poster background */}
+        {/* Loading Overlay with poster background */}
         <LoadingOverlay visible={isLoading} message={loadingMessage} poster={poster} />
 
         <SettingsPanel
