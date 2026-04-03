@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Cinetaro Player',
-  description: 'Elegant video player with multi-server support',
+  title: 'Cinetaro Player - Premium Streaming',
+  description: 'Premium video streaming with multi-server support',
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-player-bg text-white antialiased`}>
+      <body className={`${inter.className} bg-player-bg text-zinc-100 antialiased`}>
         {children}
       </body>
     </html>
