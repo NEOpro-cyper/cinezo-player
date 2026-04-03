@@ -4,9 +4,10 @@
 
 :root {
   --player-bg: #0a0a0a;
-  --player-surface: #141414;
-  --player-border: #1f1f1f;
-  --player-accent: #8b5cf6;
+  --player-surface: #000000;
+  --player-border: #27272a;
+  --player-accent: #e11d48;
+  --player-accent-hover: #be123c;
 }
 
 * {
@@ -20,6 +21,14 @@ html, body {
   overflow: hidden;
 }
 
+/* Film Strip Background Pattern */
+.film-strip-bg {
+  background-color: rgb(10, 10, 10);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cdefs%3E%3Cpattern id='p' x='0' y='0' width='200' height='200' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='50' cy='50' r='25' fill='none' stroke='%23ffffff' stroke-width='2' opacity='0.05'/%3E%3Ccircle cx='50' cy='50' r='15' fill='none' stroke='%23ffffff' stroke-width='2' opacity='0.05'/%3E%3Cline x1='50' y1='25' x2='50' y2='15' stroke='%23ffffff' stroke-width='2' opacity='0.05'/%3E%3Cline x1='50' y1='75' x2='50' y2='85' stroke='%23ffffff' stroke-width='2' opacity='0.05'/%3E%3Cline x1='25' y1='50' x2='15' y2='50' stroke='%23ffffff' stroke-width='2' opacity='0.05'/%3E%3Cline x1='75' y1='50' x2='85' y2='50' stroke='%23ffffff' stroke-width='2' opacity='0.05'/%3E%3Crect x='120' y='150' width='60' height='40' rx='5' fill='none' stroke='%23ffffff' stroke-width='2' opacity='0.04'/%3E%3Ccircle cx='150' cy='170' r='12' fill='none' stroke='%23ffffff' stroke-width='2' opacity='0.04'/%3E%3Crect x='130' y='145' width='10' height='5' fill='%23ffffff' opacity='0.03'/%3E%3Crect x='10' y='140' width='40' height='50' fill='none' stroke='%23ffffff' stroke-width='2' opacity='0.04'/%3E%3Crect x='12' y='142' width='8' height='8' fill='%23ffffff' opacity='0.03'/%3E%3Crect x='12' y='152' width='8' height='8' fill='%23ffffff' opacity='0.03'/%3E%3Crect x='12' y='162' width='8' height='8' fill='%23ffffff' opacity='0.03'/%3E%3Crect x='12' y='172' width='8' height='8' fill='%23ffffff' opacity='0.03'/%3E%3Crect x='12' y='182' width='8' height='8' fill='%23ffffff' opacity='0.03'/%3E%3Ccircle cx='180' cy='80' r='18' fill='none' stroke='%23ffffff' stroke-width='2' opacity='0.05'/%3E%3Cpath d='M175 70 L190 80 L175 90 Z' fill='%23ffffff' opacity='0.05'/%3E%3Crect x='140' y='20' width='45' height='35' rx='3' fill='none' stroke='%23ffffff' stroke-width='2' opacity='0.04'/%3E%3Cpath d='M140 30 L185 30' stroke='%23ffffff' stroke-width='2' opacity='0.04'/%3E%3Cpath d='M145 25 L145 30' stroke='%23ffffff' stroke-width='2' opacity='0.04'/%3E%3Cpath d='M155 25 L155 30' stroke='%23ffffff' stroke-width='2' opacity='0.04'/%3E%3Cpath d='M165 25 L165 30' stroke='%23ffffff' stroke-width='2' opacity='0.04'/%3E%3Cpath d='M175 25 L175 30' stroke='%23ffffff' stroke-width='2' opacity='0.04'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23p)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -31,12 +40,12 @@ html, body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #52525b;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  background: #71717a;
 }
 
 /* Vidstack Player Overrides */
@@ -45,6 +54,16 @@ media-player {
   --media-focus-ring-color: var(--player-accent);
   --media-controls-color: #fff;
   --media-font-family: inherit;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+media-player,
+media-provider,
+media-provider video {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 
 media-player[data-fullscreen] {
@@ -68,9 +87,21 @@ media-player[data-fullscreen] {
   animation: pulse-ring 1.5s ease-out infinite;
 }
 
+/* Blink Animation */
+@keyframes blink-fade {
+  0%, 100% { opacity: 1; color: rgb(161, 161, 170); }
+  25% { opacity: 0.6; color: rgb(113, 113, 122); }
+  50% { opacity: 0.3; color: rgb(82, 82, 91); }
+  75% { opacity: 0.6; color: rgb(113, 113, 122); }
+}
+
+.animate-blink-fade {
+  animation: blink-fade 3s ease-in-out infinite;
+}
+
 /* Server Button States */
 .server-btn {
-  @apply relative px-4 py-2 rounded-lg border border-player-border bg-player-surface text-sm font-medium transition-all duration-200;
+  @apply relative px-4 py-2 rounded-lg border border-zinc-800 bg-black text-sm font-medium transition-all duration-200;
 }
 
 .server-btn:hover:not(:disabled) {
@@ -129,26 +160,10 @@ media-captions {
 /* Quality Badge */
 .quality-badge {
   @apply absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider;
-  background: rgba(139, 92, 246, 0.9);
-}
-media-player {
-  --media-brand: var(--player-accent);
-  --media-focus-ring-color: var(--player-accent);
-  --media-controls-color: #fff;
-  --media-font-family: inherit;
-  width: 100% !important;
-  height: 100% !important;
+  background: rgba(225, 29, 72, 0.9);
 }
 
-media-player,
-media-provider,
-media-provider video {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
-}
-/* Add these to your existing globals.css */
-
+/* Fade in Animation */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -173,4 +188,24 @@ media-provider video {
 .loading-active {
   pointer-events: none;
   user-select: none;
+}
+
+/* Gradient Border Animation */
+@keyframes rotate-gradient {
+  0% { --angle: 0deg; }
+  100% { --angle: 360deg; }
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.animate-gradient-border {
+  position: relative;
+  border-radius: 0.5rem;
+  padding: 2px;
+  background: conic-gradient(from var(--angle), #4338ca 0deg, #7c3aed 51deg, #2563eb 102deg, #059669 153deg, #dc2626 204deg, #0891b2 255deg, #6366f1 306deg, #4338ca 360deg);
+  animation: rotate-gradient 3s linear infinite;
 }
