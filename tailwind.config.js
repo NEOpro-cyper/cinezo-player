@@ -10,10 +10,10 @@ module.exports = {
       colors: {
         player: {
           bg: '#0a0a0a',
-          surface: '#141414',
-          border: '#1f1f1f',
-          accent: '#8b5cf6',
-          'accent-hover': '#7c3aed',
+          surface: '#000000',
+          border: '#27272a',
+          accent: '#e11d48',
+          'accent-hover': '#be123c',
           success: '#22c55e',
           warning: '#f59e0b',
           error: '#ef4444',
@@ -22,6 +22,10 @@ module.exports = {
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'spin-fast': 'spin 0.5s linear infinite',
+        'blink-fade': 'blink-fade 3s ease-in-out infinite',
+      },
+      backdropBlur: {
+        xs: '2px',
       },
     },
   },
