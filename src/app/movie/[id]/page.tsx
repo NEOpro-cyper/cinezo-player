@@ -54,24 +54,23 @@ export default async function MoviePage({ params, searchParams }: MoviePageProps
   let servers;
   try {
     servers = await fetchServers();
-  } catch (error) {
+ } catch (error) {
     console.error('Failed to fetch servers:', error);
-  return (
-  <div className="flex items-center justify-center min-h-screen bg-player-bg">
-    <div className="text-center space-y-4">
-      <h1 className="text-2xl font-bold text-red-500">Error</h1>
-      <p className="text-gray-400">Failed to load servers. Please try again later.</p>
-      
-        href="."
-        className="inline-block px-6 py-2 bg-player-accent text-white rounded-lg hover:bg-player-accent/80 transition-colors"
-      >
-        Retry
-      </a>
-    </div>
-  </div>
-);
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-player-bg">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold text-red-500">Error</h1>
+          <p className="text-gray-400">Failed to load servers. Please try again later.</p>
+          
+            href="."
+            className="inline-block px-6 py-2 bg-player-accent text-white rounded-lg hover:bg-player-accent/80 transition-colors"
+          >
+            Retry
+          </a>
+        </div>
+      </div>
+    );
   }
-
   // Try to get initial source from first working server
   let initialSource = null;
   for (const server of servers) {
