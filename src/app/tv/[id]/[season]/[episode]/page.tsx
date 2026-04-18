@@ -1,5 +1,4 @@
 export const dynamic = 'force-dynamic';
-
 import { Metadata } from 'next';
 import { fetchServers, fetchTVSource } from '@/lib/api';
 import { Player } from '@/components/player';
@@ -15,20 +14,13 @@ const TMDB_IMAGE = 'https://image.tmdb.org/t/p/w780';
 
 async function fetchTVMeta(id: string, season: string) {
   if (!TMDB_API_KEY) return null;
-  
   try {
     const [showRes, seasonRes] = await Promise.all([
-      fetch(`${TMDB_BASE}/tv/${id}?api_key=${TMDB_API_KEY}`, { 
-        next: { revalidate: 86400 } 
-      }),
-      fetch(`${TMDB_BASE}/tv/${id}/season/${season}?api_key=${TMDB_API_KEY}`, { 
-        next: { revalidate: 86400 } 
-      }),
+      fetch(`${TMDB_BASE}/tv/${id}?api_key=${TMDB_API_KEY}`, { next: { revalidate: 86400 } }),
+      fetch(`${TMDB_BASE}/tv/${id}/season/${season}?api_key=${TMDB_API_KEY}`, { next: { revalidate: 86400 } }),
     ]);
-
     const show = showRes.ok ? await showRes.json() : null;
     const seasonData = seasonRes.ok ? await seasonRes.json() : null;
-
     return { show, seasonData };
   } catch {
     return null;
@@ -40,7 +32,6 @@ export async function generateMetadata({ params }: TVPageProps): Promise<Metadat
   const showName = meta?.show?.name ?? params.id;
   const seasonNum = params.season.padStart(2, '0');
   const episodeNum = params.episode.padStart(2, '0');
-
   return {
     title: `${showName} S${seasonNum}E${episodeNum} - Cinezo Player`,
     description: meta?.show?.overview || 'Watch TV shows online',
@@ -52,10 +43,8 @@ export async function generateMetadata({ params }: TVPageProps): Promise<Metadat
   };
 }
 
-export default async function TVPage({ params, searchParams }: TVPageProps) {
+export default async function TVPage({ params }: TVPageProps) {
   const { id, season, episode } = params;
-
-  // Fetch TMDB metadata
   const meta = await fetchTVMeta(id, season);
   const show = meta?.show;
   const seasonData = meta?.seasonData;
@@ -63,29 +52,21 @@ export default async function TVPage({ params, searchParams }: TVPageProps) {
   const title = show?.name
     ? `${show.name} - S${season.padStart(2, '0')}E${episode.padStart(2, '0')}`
     : `TV Show ${id} - S${season}E${episode}`;
-
-  const poster = show?.poster_path
-    ? `${TMDB_IMAGE}${show.poster_path}`
-    : undefined;
-
+  const poster = show?.poster_path ? `${TMDB_IMAGE}${show.poster_path}` : undefined;
   const totalSeasons = show?.number_of_seasons ?? undefined;
   const totalEpisodes = seasonData?.episodes?.length ?? undefined;
 
-  // Fetch servers
   let servers;
   try {
     servers = await fetchServers();
- } catch (error) {
+  } catch (error) {
     console.error('Failed to fetch servers:', error);
     return (
       <div className="flex items-center justify-center min-h-screen bg-player-bg">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold text-red-500">Error</h1>
           <p className="text-gray-400">Failed to load servers. Please try again later.</p>
-          
-            href="."
-            className="inline-block px-6 py-2 bg-player-accent text-white rounded-lg hover:bg-player-accent/80 transition-colors"
-          >
+          <a href="." className="inline-block px-6 py-2 bg-player-accent text-white rounded-lg hover:bg-player-accent/80 transition-colors">
             Retry
           </a>
         </div>
@@ -93,7 +74,6 @@ export default async function TVPage({ params, searchParams }: TVPageProps) {
     );
   }
 
-  // Try to get initial source from first working server
   let initialSource = null;
   for (const server of servers) {
     const source = await fetchTVSource(id, season, episode, server.name);
@@ -104,7 +84,6 @@ export default async function TVPage({ params, searchParams }: TVPageProps) {
   }
 
   const serverNames = servers.map(s => s.name);
-
   return (
     <main className="flex flex-col h-screen w-full bg-player-bg overflow-hidden">
       <Player
